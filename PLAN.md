@@ -144,7 +144,8 @@ passes the video itself to the TV, so the phone is free and quality is native. T
 - Plus what senders expect back: playback-state events (`loading`/`playing`/`paused`/`itemPlayedToEnd`), accurate
   `/playback-info`, a play queue (`playlistInsert`/`playlistRemove`) for autoplay-next, and track selection.
 - FairPlay-protected streams (Apple TV app, Disney+, Max, Prime) can't play on any unlicensed receiver. Detect
-  `skd://` keys and fail fast with a clear message, instead of hanging.
+  them, stop the phone from waiting, and offer to open the same service's own app on the TV, which plays it with
+  Widevine (see "Protected video fallback" in Phase 6).
 
 ### Reliability: fallbacks at every layer
 | Layer | Primary | Fallback(s) |
@@ -241,6 +242,39 @@ Each phase ends with a check run on the real TV over ADB (`192.168.29.59:5555`).
 - YouTube and other apps that hand over a video URL play in media3 ExoPlayer, with seek/pause synced to the phone.
   Fix the query-string and relative-URL playlist cases (jqssun #79).
 - Done when: "AirPlay" from the YouTube iOS app plays a 4K video on the TV while the phone is free.
+
+**Phase 6b: Protected video fallback ("open it in the TV's app")**
+- **Detect protected content**, using any one of these signals, in the order they arrive:
+  1. The sending app, from the `/play` plist (`clientBundleID`, `clientProcName`), matched against a table of
+     services known to use FairPlay.
+  2. A `POST /fp-setup2` request (FairPlay Streaming setup), which only protected playback sends.
+  3. A playlist with `EXT-X-KEY` / `EXT-X-SESSION-KEY` using `KEYFORMAT="com.apple.streamingkeydelivery"` or an
+     `skd://` key URI.
+- **Release the phone immediately:** answer the request with an error and send `state:"stopped"` on the event
+  channel, so the phone doesn't spin for 50 s. The exact error key iOS expects is [U]; capture it from a real session.
+- **On the TV:** a full-screen card in the player's style: "This video is protected. Open Disney+ on this TV?"
+  - **Open** (focused by default) launches the TV app.
+  - **Not now** dismisses the card.
+  - If the app isn't installed, the button opens its Play Store page instead.
+  - If the handoff carries a title ID or a public link (for example a `tv.apple.com` URL), try to open that title
+    directly. Otherwise open the app's home screen. Which senders include an ID is [U]; log the full `/play` plist
+    of each service to find out.
+- **Service table** (sender bundle ID → Android TV package), in one data file, unit-tested, easy to extend:
+
+  | Service | iOS bundle ID | Android TV package |
+  |---|---|---|
+  | Apple TV app | `com.apple.tv` | `com.apple.atve.androidtv.appletv` (installed on the test TV) |
+  | Prime Video | `com.amazon.aiv.AIVApp` | `com.amazon.amazonvideo.livingroom` (installed on the test TV) |
+  | Disney+ | `com.disney.disneyplus` | `com.disney.disneyplus` [U on the TV package] |
+  | Max | `com.wbd.stream` [U] | `com.wbd.stream` [U] |
+  | JioHotstar and other regional services | [U] | [U] |
+
+  Rows marked [U] are filled in from real session logs and `pm list packages` on the TV before they ship.
+- **Settings:** "When a video is protected": ask (default), always open the app, or show a message only.
+- **Tests first:** detection from recorded `/play` plists and playlists (including truncated and bit-flipped
+  copies), the bundle-to-package table, and the not-installed path.
+- Done when: playing a Disney+ or Apple TV app video over AirPlay frees the phone at once, and one press of OK on
+  the TV remote opens that service's app on the TV.
 
 **Phase 7: Polish**
 - A small settings screen for TV (name, PIN, resolution, latency mode, auto-takeover on/off), settings changeable over ADB,
