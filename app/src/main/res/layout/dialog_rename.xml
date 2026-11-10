@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Full-screen modal (tvOS text-entry style): opaque scrim, centred column, pill actions. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/m3_scrim">
+
+    <LinearLayout
+        android:layout_width="640dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/Text.Headline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:accessibilityHeading="true"
+            android:text="@string/rename_title" />
+
+        <TextView
+            android:id="@+id/help"
+            style="@style/Text.Body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center" />
+
+        <EditText
+            android:id="@+id/field"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:layout_marginTop="28dp"
+            android:background="@drawable/field_bg"
+            android:fontFamily="sans-serif-medium"
+            android:hint="@string/rename_hint"
+            android:imeOptions="actionDone|flagNoExtractUi"
+            android:importantForAutofill="no"
+            android:inputType="textCapWords"
+            android:maxLength="40"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:singleLine="true"
+            android:textColor="@color/m3_on_surface"
+            android:textColorHint="@color/m3_outline"
+            android:textSize="26sp" />
+
+        <TextView
+            android:id="@+id/preview"
+            style="@style/Text.Body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:accessibilityLiveRegion="polite"
+            android:textSize="16sp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="36dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/save"
+                style="@style/PillButton.Emphasis"
+                android:text="@string/rename_save" />
+
+            <Button
+                android:id="@+id/use_tv_name"
+                style="@style/PillButton"
+                android:text="@string/rename_use_tv_name" />
+
+            <Button
+                android:id="@+id/cancel"
+                style="@style/PillButton"
+                android:text="@string/cancel" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

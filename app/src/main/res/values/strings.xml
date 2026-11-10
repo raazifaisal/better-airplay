@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Better AirPlay</string>
+    <string name="channel_name">AirPlay receiver</string>
+    <string name="a_device">a device</string>
+
+    <!-- Status -->
+    <string name="status_stopped">Not running</string>
+    <string name="status_starting">Starting…</string>
+    <string name="status_ready">Ready for AirPlay</string>
+    <string name="status_connecting">Connecting to %1$s…</string>
+    <string name="status_mirroring">Mirroring %1$s</string>
+    <string name="status_video">Playing video from %1$s</string>
+    <string name="status_audio">Playing audio from %1$s</string>
+    <string name="status_error">Couldn’t start the receiver (error %1$d)</string>
+    <string name="notif_ready">Ready as “%1$s”</string>
+    <string name="notif_pin">Enter %1$s on your device to connect</string>
+
+    <!-- Home -->
+    <string name="hint_ready">On iPhone or iPad, open Control Center and choose Screen Mirroring → “%1$s”. On a Mac, use Screen Mirroring in Control Center. In apps, tap the AirPlay button.</string>
+    <string name="hint_connected">Choose Disconnect to stop, or stop AirPlay on your device.</string>
+    <string name="row_name">AirPlay Name</string>
+    <string name="row_name_desc">The name your iPhone, iPad and Mac show in Screen Mirroring and the AirPlay menu. By default it follows this TV’s own name.</string>
+    <string name="row_disconnect">Disconnect</string>
+    <string name="row_disconnect_desc">Stop the current session with %1$s and return to what you were watching.</string>
+    <string name="row_advanced">Advanced</string>
+    <string name="row_advanced_desc">Resolution, codec, refresh rate, latency, audio sync, passthrough, PIN and diagnostics.</string>
+    <string name="row_restart">Restart Receiver</string>
+    <string name="row_restart_desc">Disconnects everyone and re-announces this TV on the network. Use it if a device can’t find the TV.</string>
+    <string name="summary_video">Up to %1$s · %2$s · %3$d Hz</string>
+
+    <!-- Messages -->
+    <string name="msg_restarting">Restarting receiver…</string>
+    <string name="msg_saved_restarted">Saved. The receiver restarted; reconnect to use the new setting.</string>
+    <string name="msg_saved_next_stream">Saved. Applies from the next stream.</string>
+    <string name="msg_renamed">Now visible as “%1$s”</string>
+
+    <!-- Advanced -->
+    <string name="adv_title">Advanced</string>
+    <string name="adv_intro">Settings for people who like control. Every option explains itself here when selected.</string>
+    <string name="adv_effective">Advertising %1$s · %2$s · %3$d Hz · %4$d fps · %5$s</string>
+    <string name="pin_on">PIN on</string>
+    <string name="pin_off">PIN off</string>
+    <string name="hint_adjust">Press ◀ ▶ to change. Press OK to step through options.</string>
+
+    <string name="sec_mirroring">Screen Mirroring</string>
+    <string name="sec_audio">Audio</string>
+    <string name="sec_playback">Video Playback</string>
+    <string name="sec_access">Access</string>
+    <string name="sec_diagnostics">Diagnostics</string>
+    <string name="sec_maintenance">Maintenance</string>
+
+    <string name="set_resolution">Resolution</string>
+    <string name="set_resolution_desc">The largest picture senders are told they can use. Auto picks the highest your TV can decode smoothly. Lower it on weak Wi-Fi for fewer stutters. Takes effect when a device next connects.</string>
+    <string name="set_codec">Codec</string>
+    <string name="set_codec_desc">Auto offers HEVC (needed for 4K) and H.264, and the sender picks. H.264 Only is the most compatible and limits mirroring to about 1080p.</string>
+    <string name="set_refresh">Refresh Rate</string>
+    <string name="set_refresh_desc">The display rate reported to senders. Match it to your TV’s mode (usually 60 Hz, or 50 Hz in PAL regions) for the smoothest motion.</string>
+    <string name="set_fps">Frame Rate Limit</string>
+    <string name="set_fps_desc">Caps mirrored frames per second. 30 fps halves bandwidth and helps on congested networks; 60 fps is smoother for games and scrolling.</string>
+    <string name="set_latency">Latency</string>
+    <string name="set_latency_desc">How much video is buffered before display. Low suits games and presentations; Smooth hides Wi-Fi hiccups at the cost of delay.</string>
+    <string name="set_overscan">Overscan Compensation</string>
+    <string name="set_overscan_desc">Turn on if the edges of the mirrored screen are cut off. Tells senders to keep content inside a safe area.</string>
+
+    <string name="set_mirror_audio">Play Audio While Mirroring</string>
+    <string name="set_mirror_audio_desc">Off keeps the TV silent during Screen Mirroring, for example during a presentation while sound stays on your device.</string>
+    <string name="set_audio_delay">Audio Delay</string>
+    <string name="set_audio_delay_desc">Fine-tunes lip sync in 10 ms steps. Use + if sound arrives before the picture, − if it arrives after. Press OK to reset.</string>
+    <string name="set_passthrough">Surround Passthrough</string>
+    <string name="set_passthrough_desc">During AirPlay video playback, send Dolby/DTS audio untouched to a connected soundbar or AV receiver instead of decoding it on the TV.</string>
+
+    <string name="set_hdr">HDR Passthrough</string>
+    <string name="set_hdr_desc">Plays HDR10, HLG and Dolby Vision video in HDR when the stream and your TV support it. Turn off if HDR content looks washed out.</string>
+    <string name="set_match_fps">Match Frame Rate</string>
+    <string name="set_match_fps_desc">Switches the TV’s refresh rate to match the video (for example 24 fps films) to avoid judder. Seamless Only avoids switches that blank the screen.</string>
+
+    <string name="set_access">Require PIN</string>
+    <string name="set_access_desc">With On-Screen PIN, a new device must enter a 4-digit code shown on the TV the first time it connects. It is remembered afterwards.</string>
+
+    <string name="set_stats">Stats Overlay</string>
+    <string name="set_stats_desc">Shows resolution, codec, frame rate, bitrate and dropped frames on top of the stream.</string>
+
+    <string name="set_reset">Reset Advanced Settings</string>
+    <string name="set_reset_desc">Restores every setting on this screen to its default. Your AirPlay name is kept.</string>
+
+    <!-- Options -->
+    <string name="opt_auto_value">Auto (%1$s)</string>
+    <string name="opt_codec_auto">Auto (HEVC + H.264)</string>
+    <string name="opt_codec_auto_no_hevc">Auto (H.264, no HEVC on this TV)</string>
+    <string name="opt_codec_h264">H.264 Only</string>
+    <string name="opt_latency_low">Low (%1$d ms)</string>
+    <string name="opt_latency_balanced">Balanced (%1$d ms)</string>
+    <string name="opt_latency_smooth">Smooth (%1$d ms)</string>
+    <string name="opt_in_sync">0 ms</string>
+    <string name="opt_on">On</string>
+    <string name="opt_off">Off</string>
+    <string name="opt_match_seamless">Seamless Only</string>
+    <string name="opt_match_always">Always</string>
+    <string name="opt_access_everyone">Off</string>
+    <string name="opt_access_pin">On-Screen PIN</string>
+
+    <!-- Rename -->
+    <string name="rename_title">AirPlay Name</string>
+    <string name="rename_help">Leave empty to use this TV’s name, “%1$s”.</string>
+    <string name="rename_hint">Name</string>
+    <string name="rename_preview">Will appear as “%1$s”</string>
+    <string name="rename_save">Save</string>
+    <string name="rename_use_tv_name">Use TV Name</string>
+    <string name="cancel">Cancel</string>
+    <!-- Player -->
+    <string name="player_back_hint">Press Back again to disconnect</string>
+    <string name="player_audio_from">AirPlay · %1$s</string>
+    <string name="player_unknown_track">AirPlay Audio</string>
+    <string name="player_no_remote">This device doesn’t accept controls from the TV</string>
+    <string name="cd_previous">Previous track</string>
+    <string name="cd_play_pause">Play or pause</string>
+    <string name="cd_next">Next track</string>
+</resources>

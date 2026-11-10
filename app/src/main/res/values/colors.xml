@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material 3 dark tonal scheme (seed: blue). Semantic tokens only; components never use raw hex. -->
+<resources>
+    <color name="m3_primary">#FFAAC7FF</color>
+    <color name="m3_on_primary">#FF0A305F</color>
+    <color name="m3_primary_container">#FF284777</color>
+    <color name="m3_on_primary_container">#FFD6E3FF</color>
+    <color name="m3_secondary_container">#FF3E4759</color>
+    <color name="m3_on_secondary_container">#FFDAE2F9</color>
+    <color name="m3_tertiary">#FFDDBCE0</color>
+    <color name="m3_error">#FFFFB4AB</color>
+    <color name="m3_on_error">#FF690005</color>
+
+    <color name="m3_surface">#FF111318</color>
+    <color name="m3_surface_container_low">#FF191C20</color>
+    <color name="m3_surface_container">#FF1D2024</color>
+    <color name="m3_surface_container_high">#FF282A2F</color>
+    <color name="m3_surface_container_highest">#FF33353A</color>
+    <color name="m3_on_surface">#FFE2E2E9</color>
+    <color name="m3_on_surface_variant">#FFC4C6D0</color>
+    <color name="m3_outline">#FF8E9099</color>
+    <color name="m3_outline_variant">#FF44474F</color>
+    <color name="m3_scrim">#F2111318</color>
+
+    <!-- Status roles (always shown with text, never colour alone) -->
+    <color name="status_idle">#FF8E9099</color>
+    <color name="status_busy">#FFF2C46D</color>
+    <color name="status_ready">#FF8BD99A</color>
+    <color name="status_active">#FFAAC7FF</color>
+    <color name="status_error">#FFFFB4AB</color>
+</resources>
