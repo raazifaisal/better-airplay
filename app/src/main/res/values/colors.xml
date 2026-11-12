@@ -1,31 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Material 3 dark tonal scheme (seed: blue). Semantic tokens only; components never use raw hex. -->
+<!--
+  Light appearance (system light mode). values-night/colors.xml holds the dark values under the
+  same names, so every screen follows the TV's appearance setting like tvOS does.
+  Semantic tokens only; components never use raw hex.
+-->
 <resources>
-    <color name="m3_primary">#FFAAC7FF</color>
-    <color name="m3_on_primary">#FF0A305F</color>
-    <color name="m3_primary_container">#FF284777</color>
-    <color name="m3_on_primary_container">#FFD6E3FF</color>
-    <color name="m3_secondary_container">#FF3E4759</color>
-    <color name="m3_on_secondary_container">#FFDAE2F9</color>
-    <color name="m3_tertiary">#FFDDBCE0</color>
-    <color name="m3_error">#FFFFB4AB</color>
-    <color name="m3_on_error">#FF690005</color>
+    <!-- Monochrome accent, like tvOS Settings: ink on light, no brand blue. -->
+    <color name="m3_primary">#FF15171C</color>
+    <color name="m3_on_primary">#FFFFFFFF</color>
+    <color name="m3_primary_container">#FFE1E3E8</color>
+    <color name="m3_on_primary_container">#FF15171C</color>
+    <color name="m3_secondary_container">#FFE1E3E8</color>
+    <color name="m3_on_secondary_container">#FF15171C</color>
+    <color name="m3_tertiary">#FF7A4A80</color>
+    <color name="m3_error">#FFC4281C</color>
+    <color name="m3_on_error">#FFFFFFFF</color>
 
-    <color name="m3_surface">#FF111318</color>
-    <color name="m3_surface_container_low">#FF191C20</color>
-    <color name="m3_surface_container">#FF1D2024</color>
-    <color name="m3_surface_container_high">#FF282A2F</color>
-    <color name="m3_surface_container_highest">#FF33353A</color>
-    <color name="m3_on_surface">#FFE2E2E9</color>
-    <color name="m3_on_surface_variant">#FFC4C6D0</color>
-    <color name="m3_outline">#FF8E9099</color>
-    <color name="m3_outline_variant">#FF44474F</color>
-    <color name="m3_scrim">#F2111318</color>
+    <color name="m3_surface">#FFDFE0E4</color>
+    <color name="m3_surface_container_low">#FFF6F7FA</color>
+    <color name="m3_surface_container">#FFFFFFFF</color>
+    <color name="m3_surface_container_high">#FFE4E7ED</color>
+    <color name="m3_surface_container_highest">#FFD9DDE5</color>
+    <color name="m3_on_surface">#FF1C1C1E</color>
+    <color name="m3_on_surface_variant">#FF5C5C63</color>
+    <color name="m3_outline">#FF7A7E88</color>
+    <color name="m3_outline_variant">#FFC6CAD3</color>
+    <color name="m3_scrim">#F2DFE0E4</color>
+
+    <!-- Focus selector inverts against the background: on a light background it's a near-black
+         card with white content (values-night has the white card with dark content). -->
+    <color name="focus_fill">#FF1C1C1E</color>
+    <color name="focus_fill_top">#FF323236</color>
+    <color name="focus_on">#FFF5F5F7</color>
+    <color name="focus_on_variant">#FFBDBDC2</color>
+    <!-- tvOS 26 rows/buttons at rest: a translucent glass capsule over the silver background. -->
+    <color name="glass">#73FFFFFF</color>
+    <color name="glass_strong">#D9FFFFFF</color>
+    <!-- Hero glyph: shown directly on the background, no tile. -->
+    <color name="hero_glyph">#FF15171C</color>
+
+    <!-- Destructive rows (e.g. Reset): red text at rest and on the lit platter, like tvOS. -->
+    <color name="destructive">#FFD70015</color>
+    <color name="destructive_on_focus">#FFFF6961</color>
+
+    <!-- Now Playing sits on the dark album-art wash in both appearances, so these don't change in
+         values-night. Off-white text and a silver focus sheen, like tvOS (never paper-white). -->
+    <color name="np_text">#FFF2F2F5</color>
+    <color name="np_glass">#24FFFFFF</color>
+    <color name="np_glass_strong">#33FFFFFF</color>
+    <color name="np_focus_top">#FFEAEAED</color>
+    <color name="np_focus">#FFCFCFD4</color>
+    <color name="np_on_focus">#FF1C1C1E</color>
 
     <!-- Status roles (always shown with text, never colour alone) -->
-    <color name="status_idle">#FF8E9099</color>
-    <color name="status_busy">#FFF2C46D</color>
-    <color name="status_ready">#FF8BD99A</color>
-    <color name="status_active">#FFAAC7FF</color>
-    <color name="status_error">#FFFFB4AB</color>
+    <color name="status_idle">#FF6E727C</color>
+    <color name="status_busy">#FFB57A00</color>
+    <color name="status_ready">#FF1E8E3E</color>
+    <color name="status_active">#FF15171C</color>
+    <color name="status_error">#FFC4281C</color>
 </resources>

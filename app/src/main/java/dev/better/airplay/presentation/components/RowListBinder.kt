@@ -49,7 +49,7 @@ class RowListBinder(
                 lp.bottomMargin = (8 * d).toInt()
                 lp.marginStart = (24 * d).toInt()
             } else {
-                lp.bottomMargin = (4 * d).toInt()
+                lp.bottomMargin = (8 * d).toInt()
             }
             container.addView(view, lp)
             views[row.id] = view

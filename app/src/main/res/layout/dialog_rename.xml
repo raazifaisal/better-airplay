@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Full-screen modal (tvOS text-entry style): opaque scrim, centred column, pill actions. -->
+<!--
+  Full-screen text entry, tvOS style. Opaque background (nothing shows through), and everything
+  sits in the top half so the TV's on-screen keyboard, which rises from the bottom, never covers
+  the field or the actions (WCAG 2.2 "focus not obscured"). The keyboard's ✓ key also saves.
+-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/m3_scrim">
+    android:background="@drawable/bg_ambient">
 
     <LinearLayout
-        android:layout_width="640dp"
+        android:layout_width="840dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="44dp"
         android:gravity="center_horizontal"
         android:orientation="vertical">
 
         <TextView
-            style="@style/Text.Headline"
+            style="@style/Text.Display"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:accessibilityHeading="true"
@@ -24,27 +29,69 @@
             style="@style/Text.Body"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="6dp"
             android:gravity="center" />
 
-        <EditText
-            android:id="@+id/field"
+        <!-- Field and actions on one row, so all of them stay above the keyboard. -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="72dp"
-            android:layout_marginTop="28dp"
-            android:background="@drawable/field_bg"
-            android:fontFamily="sans-serif-medium"
-            android:hint="@string/rename_hint"
-            android:imeOptions="actionDone|flagNoExtractUi"
-            android:importantForAutofill="no"
-            android:inputType="textCapWords"
-            android:maxLength="40"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:singleLine="true"
-            android:textColor="@color/m3_on_surface"
-            android:textColorHint="@color/m3_outline"
-            android:textSize="26sp" />
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/field"
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:background="@drawable/field_bg"
+                android:fontFamily="sans-serif-medium"
+                android:hint="@string/rename_hint"
+                android:imeOptions="actionDone|flagNoExtractUi"
+                android:importantForAutofill="no"
+                android:inputType="textCapWords"
+                android:maxLength="40"
+                android:paddingStart="22dp"
+                android:paddingEnd="22dp"
+                android:singleLine="true"
+                android:textColor="@color/m3_on_surface"
+                android:textColorHint="@color/m3_outline"
+                android:textSize="24sp" />
+
+            <Button
+                android:id="@+id/save"
+                style="@style/PillButton.Emphasis"
+                android:layout_height="64dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="0dp"
+                android:minWidth="0dp"
+                android:paddingStart="28dp"
+                android:paddingEnd="28dp"
+                android:text="@string/rename_save" />
+
+            <Button
+                android:id="@+id/use_tv_name"
+                style="@style/PillButton"
+                android:layout_height="64dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="0dp"
+                android:minWidth="0dp"
+                android:paddingStart="26dp"
+                android:paddingEnd="26dp"
+                android:text="@string/rename_use_tv_name" />
+
+            <Button
+                android:id="@+id/cancel"
+                style="@style/PillButton"
+                android:layout_height="64dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="0dp"
+                android:minWidth="0dp"
+                android:paddingStart="26dp"
+                android:paddingEnd="26dp"
+                android:text="@string/cancel" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/preview"
@@ -54,27 +101,5 @@
             android:layout_marginTop="12dp"
             android:accessibilityLiveRegion="polite"
             android:textSize="16sp" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="36dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/save"
-                style="@style/PillButton.Emphasis"
-                android:text="@string/rename_save" />
-
-            <Button
-                android:id="@+id/use_tv_name"
-                style="@style/PillButton"
-                android:text="@string/rename_use_tv_name" />
-
-            <Button
-                android:id="@+id/cancel"
-                style="@style/PillButton"
-                android:text="@string/cancel" />
-        </LinearLayout>
     </LinearLayout>
 </FrameLayout>

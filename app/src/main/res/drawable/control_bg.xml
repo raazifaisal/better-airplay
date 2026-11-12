@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Now Playing transport button, tvOS 26 style: a translucent glass circle over the album-art wash;
+     on focus it lights up to soft silver with a top-to-bottom sheen (never paper-white). -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android" android:enterFadeDuration="120" android:exitFadeDuration="120">
-    <item android:state_focused="true"><shape android:shape="oval"><solid android:color="#FFFFFFFF" /></shape></item>
-    <item><shape android:shape="oval"><solid android:color="#33FFFFFF" /></shape></item>
+    <item android:state_focused="true">
+        <shape android:shape="oval">
+            <gradient android:angle="270" android:startColor="@color/np_focus_top" android:endColor="@color/np_focus" />
+        </shape>
+    </item>
+    <item><shape android:shape="oval"><solid android:color="@color/np_glass" /></shape></item>
 </selector>

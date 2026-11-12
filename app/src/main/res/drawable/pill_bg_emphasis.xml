@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Default-action button: a brighter glass capsule at rest so it reads as the primary choice;
+     same lit sheen as pill_bg when focused. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android" android:enterFadeDuration="150" android:exitFadeDuration="120">
     <item android:state_focused="true">
-        <shape><solid android:color="@color/m3_primary" /><corners android:radius="30dp" /></shape>
+        <shape>
+            <gradient android:angle="270" android:startColor="@color/focus_fill_top" android:endColor="@color/focus_fill" />
+            <corners android:radius="999dp" />
+        </shape>
     </item>
     <item>
-        <shape><solid android:color="@color/m3_secondary_container" /><corners android:radius="16dp" /></shape>
+        <shape><solid android:color="@color/glass_strong" /><corners android:radius="999dp" /></shape>
     </item>
 </selector>

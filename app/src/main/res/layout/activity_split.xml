@@ -6,7 +6,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/m3_surface"
+    android:background="@drawable/bg_ambient"
     android:clipChildren="false">
 
     <LinearLayout
@@ -15,40 +15,33 @@
         android:clipChildren="false"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="64dp"
-        android:paddingTop="36dp"
-        android:paddingEnd="56dp"
-        android:paddingBottom="36dp">
+        android:paddingStart="64dp">
 
         <!-- Left: artwork, title, status, focused-item description -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="5"
+            android:layout_weight="11"
             android:gravity="center_horizontal"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingTop="32dp"
+            android:paddingBottom="32dp">
 
-            <FrameLayout
-                android:id="@+id/artwork"
-                android:layout_width="220dp"
-                android:layout_height="220dp"
-                android:background="@drawable/shape_artwork">
-
-                <ImageView
-                    android:id="@+id/artwork_icon"
-                    android:layout_width="104dp"
-                    android:layout_height="104dp"
-                    android:layout_gravity="center"
-                    android:importantForAccessibility="no"
-                    android:tint="@color/m3_on_primary_container" />
-            </FrameLayout>
+            <!-- Hero glyph sits directly on the background (no tile), like a tvOS Settings icon. -->
+            <ImageView
+                android:id="@+id/artwork_icon"
+                android:layout_width="144dp"
+                android:layout_height="144dp"
+                android:importantForAccessibility="no"
+                android:scaleType="fitCenter"
+                android:tint="@color/hero_glyph" />
 
             <TextView
                 android:id="@+id/title"
                 style="@style/Text.Display"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="28dp"
+                android:layout_marginTop="16dp"
                 android:accessibilityHeading="true"
                 android:ellipsize="end"
                 android:gravity="center"
@@ -99,8 +92,11 @@
                 style="@style/Text.Body"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="16dp"
+                android:ellipsize="end"
                 android:gravity="center"
+                android:lineSpacingMultiplier="1.22"
+                android:maxLines="7"
                 android:maxWidth="440dp"
                 android:minLines="3" />
         </LinearLayout>
@@ -114,10 +110,13 @@
             android:id="@+id/scroll"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="6"
+            android:layout_weight="14"
             android:clipChildren="false"
             android:clipToPadding="false"
             android:fillViewport="true"
+            android:paddingTop="40dp"
+            android:paddingEnd="48dp"
+            android:paddingBottom="40dp"
             android:scrollbars="none">
 
             <LinearLayout
@@ -128,10 +127,10 @@
                 android:clipToPadding="false"
                 android:gravity="center_vertical"
                 android:orientation="vertical"
-                android:paddingStart="16dp"
-                android:paddingTop="24dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="24dp" />
+                android:paddingStart="24dp"
+                android:paddingTop="16dp"
+                android:paddingEnd="24dp"
+                android:paddingBottom="16dp" />
         </ScrollView>
     </LinearLayout>
 

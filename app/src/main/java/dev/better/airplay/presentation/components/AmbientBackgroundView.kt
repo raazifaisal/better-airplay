@@ -20,6 +20,11 @@ import kotlin.math.sin
  * Apple-Music/tvOS-style living background: soft colour fields taken from the artwork drift slowly
  * over a deep base, with the blurred artwork underneath and a scrim for text contrast.
  * Motion pauses with playback and is disabled entirely when system animations are off.
+ *
+ * Performance: the look is a heavy blur, so it's rendered into a quarter-resolution buffer and
+ * scaled up with filtering (visually identical, ~1/16 of the fill work per frame), and the drift
+ * (25-40 s loops) redraws at ~30 fps. This keeps the GPU free for the artwork and focus
+ * animations on low-end TV chips.
  */
 class AmbientBackgroundView(context: Context) : View(context) {
 
@@ -37,9 +42,13 @@ class AmbientBackgroundView(context: Context) : View(context) {
     private val scrimPaint = Paint()
     private val matrix = Matrix()
     private val dst = Rect()
+    private var buffer: Bitmap? = null
+    private val bufferCanvas = Canvas()
+    private val bufferPaint = Paint(Paint.FILTER_BITMAP_FLAG)
+    private val bufferDst = Rect()
 
     var playing = true
-        set(value) { field = value; if (value) postInvalidateOnAnimation() }
+        set(value) { field = value; if (value) postInvalidate() }
 
     // Each blob: orbit centre (fraction of size), orbit radius, angular speed (rad/s), phase, size factor.
     private val blobs = arrayOf(
@@ -71,16 +80,30 @@ class AmbientBackgroundView(context: Context) : View(context) {
     private fun currentColors() = IntArray(BLOBS) { argb.evaluate(blend, fromColors[it], toColors[it]) as Int }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        if (w <= 0 || h <= 0) return
+        val bw = max(1, w / SCALE); val bh = max(1, h / SCALE)
+        buffer?.recycle()
+        buffer = Bitmap.createBitmap(bw, bh, Bitmap.Config.ARGB_8888).also { bufferCanvas.setBitmap(it) }
+        bufferDst.set(0, 0, w, h)
         // Uniform 18% dim plus a vignette to ~40% at the corners keeps text legible on any palette.
-        scrimPaint.shader = RadialGradient(w / 2f, h / 2f, maxOf(w, h) * 0.75f,
+        // (Built in buffer coordinates; everything below draws at buffer size.)
+        scrimPaint.shader = RadialGradient(bw / 2f, bh / 2f, maxOf(bw, bh) * 0.75f,
             intArrayOf(0x2E000000, 0x2E000000, 0x66000000), floatArrayOf(0f, 0.55f, 1f), Shader.TileMode.CLAMP)
     }
 
     override fun onDraw(canvas: Canvas) {
-        val w = width.toFloat(); val h = height.toFloat()
+        val buf = buffer ?: return
         val now = SystemClock.uptimeMillis()
         if (lastFrameMs != 0L && playing && Motion.enabled) timeSec += (now - lastFrameMs).coerceAtMost(100) / 1000f
         lastFrameMs = now
+        drawScene(bufferCanvas, buf.width, buf.height)
+        canvas.drawBitmap(buf, null, bufferDst, bufferPaint)
+        if (playing && Motion.enabled) postInvalidateDelayed(FRAME_MS)
+    }
+
+    /** The full look at buffer resolution. */
+    private fun drawScene(canvas: Canvas, width: Int, height: Int) {
+        val w = width.toFloat(); val h = height.toFloat()
 
         // Deep base tinted by the dominant colour.
         basePaint.color = darken(colors[0], 0.35f)
@@ -111,11 +134,19 @@ class AmbientBackgroundView(context: Context) : View(context) {
         }
 
         canvas.drawRect(0f, 0f, w, h, scrimPaint)
-        if (playing && Motion.enabled) postInvalidateOnAnimation()
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        buffer?.recycle(); buffer = null
     }
 
     companion object {
         private const val BLOBS = 4
+        /** Render at 1/SCALE resolution; the look is a heavy blur so upscaling is invisible. */
+        private const val SCALE = 4
+        /** ~30 fps for the slow drift. */
+        private const val FRAME_MS = 33L
 
         /** Cheap, good-looking blur for a background: downscale hard, then upscale with filtering twice. */
         fun blur(src: Bitmap): Bitmap {

@@ -112,6 +112,9 @@
     <string name="player_back_hint">Press Back again to disconnect</string>
     <string name="player_audio_from">AirPlay · %1$s</string>
     <string name="player_unknown_track">AirPlay Audio</string>
+    <string name="player_now_playing">Now Playing</string>
+    <string name="player_label_artist">Artist</string>
+    <string name="player_label_album">Album</string>
     <string name="player_no_remote">This device doesn’t accept controls from the TV</string>
     <string name="cd_previous">Previous track</string>
     <string name="cd_play_pause">Play or pause</string>

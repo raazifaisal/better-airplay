@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Advanced settings glyph: a wrench drawn in the same language as ic_airplay — a single 2-unit
+     outline stroke with round caps/joins on the 24-unit grid. Recolour via tint. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/m3_on_surface">
+    <path
+        android:pathData="M6.237 20.237L13.05 13.424A5.5 5.5 0 0 0 20.352 5.91L17.48 8.782L15.218 6.52L18.09 3.648A5.5 5.5 0 0 0 10.576 10.95L3.763 17.763A1.75 1.75 0 0 0 6.237 20.237Z"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

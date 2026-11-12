@@ -2,6 +2,7 @@ package dev.better.airplay.presentation.player
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Outline
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -11,6 +12,7 @@ import android.view.KeyEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
+import android.view.ViewOutlineProvider
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -41,6 +43,10 @@ class PlayerActivity : ViewModelActivity<PlayerUiState, PlayerAction, PlayerEffe
     private lateinit var npArtist: TextView
     private lateinit var npAlbum: TextView
     private lateinit var npCaption: TextView
+    private lateinit var npSourcePill: View
+    private lateinit var npMeta: View
+    private lateinit var npColArtist: View
+    private lateinit var npColAlbum: View
     private lateinit var npProgressGroup: View
     private lateinit var progressLine: ProgressLineView
     private lateinit var npElapsed: TextView
@@ -90,10 +96,28 @@ class PlayerActivity : ViewModelActivity<PlayerUiState, PlayerAction, PlayerEffe
 
         nowPlaying = findViewById(R.id.now_playing)
         artwork = findViewById(R.id.artwork)
+        // Round the artwork itself (not just its hairline). android:clipToOutline in XML is only
+        // read on API 31+, so set the outline and clipping in code for older TVs.
+        val artRadius = 24 * resources.displayMetrics.density
+        artwork.outlineProvider = object : ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: Outline) =
+                outline.setRoundRect(0, 0, view.width, view.height, artRadius)
+        }
+        artwork.clipToOutline = true
+        // Pause shrinks the artwork; anchor it on the left edge (vertically centred) so it stays
+        // flush with the "Now Playing" wordmark above instead of drifting inward.
+        artwork.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+            v.pivotX = 0f
+            v.pivotY = v.height / 2f
+        }
         npTitle = findViewById(R.id.np_title)
         npArtist = findViewById(R.id.np_artist)
         npAlbum = findViewById(R.id.np_album)
         npCaption = findViewById(R.id.np_caption)
+        npSourcePill = findViewById(R.id.np_source_pill)
+        npMeta = findViewById(R.id.np_meta)
+        npColArtist = findViewById(R.id.np_col_artist)
+        npColAlbum = findViewById(R.id.np_col_album)
         npProgressGroup = findViewById(R.id.np_progress_group)
         npElapsed = findViewById(R.id.np_elapsed)
         npRemaining = findViewById(R.id.np_remaining)
@@ -124,11 +148,17 @@ class PlayerActivity : ViewModelActivity<PlayerUiState, PlayerAction, PlayerEffe
         connectingPin.text = state.pin
 
         npTitle.text = state.title
+        val hasArtist = !state.artist.isNullOrBlank()
+        val hasAlbum = !state.album.isNullOrBlank()
         npArtist.text = state.artist
-        npArtist.visibility = if (state.artist != null) View.VISIBLE else View.GONE
         npAlbum.text = state.album
-        npAlbum.visibility = if (state.album != null) View.VISIBLE else View.GONE
-        npCaption.text = state.caption
+        npColArtist.visibility = if (hasArtist) View.VISIBLE else View.GONE
+        npColAlbum.visibility = if (hasAlbum) View.VISIBLE else View.GONE
+        npMeta.visibility = if (hasArtist || hasAlbum) View.VISIBLE else View.GONE
+        // Source pill shows the device name; fall back to the "AirPlay · …" caption.
+        val source = state.senderName.ifBlank { state.caption }
+        npCaption.text = source
+        npSourcePill.visibility = if (source.isNotBlank()) View.VISIBLE else View.GONE
         if (state.artwork !== shownArtwork) loadArtwork(state.artwork)
         renderPlaying(state.playing)
         btnPlayPause.setImageResource(if (state.playing) R.drawable.ic_pause else R.drawable.ic_play)
@@ -160,14 +190,12 @@ class PlayerActivity : ViewModelActivity<PlayerUiState, PlayerAction, PlayerEffe
         if (shownPlaying == playing) return
         val first = shownPlaying == null
         shownPlaying = playing
-        // Paused: 0.94 scale, dimmed to 85%, shallower shadow. Resume: spring back with a slight overshoot.
-        val d = resources.displayMetrics.density
+        // Apple Music: paused artwork simply shrinks (no dimming). Resume springs back with a slight overshoot.
         artwork.animate()
-            .scaleX(if (playing) 1f else 0.94f).scaleY(if (playing) 1f else 0.94f)
-            .alpha(if (playing) 1f else 0.85f)
-            .translationZ(if (playing) 0f else -12f * d)
+            .scaleX(if (playing) 1f else 0.9f).scaleY(if (playing) 1f else 0.9f)
             .setInterpolator(if (playing) android.view.animation.OvershootInterpolator(1.2f) else Motion.standard)
             .setDuration(if (first || !Motion.enabled) 0 else if (playing) 450 else 350)
+            .withLayer()   // scale a cached texture of the rounded artwork instead of re-clipping each frame
             .start()
     }
 
@@ -212,7 +240,7 @@ class PlayerActivity : ViewModelActivity<PlayerUiState, PlayerAction, PlayerEffe
         artwork.scaleType = ImageView.ScaleType.CENTER
         artwork.imageTintList = null
         ambient.setArtwork(ArtworkPalette.ambient(emptyList()), null)
-        progressLine.accent = 0xFFFFFFFF.toInt()
+        progressLine.accent = getColor(R.color.np_text)
     }
 
     override fun handle(effect: PlayerEffect) {
@@ -240,9 +268,13 @@ class PlayerActivity : ViewModelActivity<PlayerUiState, PlayerAction, PlayerEffe
 
     private fun bindControl(button: ImageButton, command: RemoteCommand) {
         button.setOnClickListener { viewModel.onAction(PlayerAction.Remote(command)) }
+        // Same focus as the settings rows (SettingRowView): glass lights up to silver (drawable
+        // state), then the same lift and spring. Slightly more scale since the targets are small.
+        val lift = 16 * resources.displayMetrics.density
         button.setOnFocusChangeListener { v, focused ->
-            val s = if (focused) 1.12f else 1f
-            v.animate().scaleX(s).scaleY(s).setInterpolator(if (focused) Motion.focusIn else Motion.focusOut)
+            val s = if (focused) 1.08f else 1f
+            v.animate().scaleX(s).scaleY(s).translationZ(if (focused) lift else 0f)
+                .setInterpolator(if (focused) Motion.focusIn else Motion.focusOut)
                 .setDuration(if (focused) Motion.focusInMs() else Motion.focusOutMs()).start()
         }
     }

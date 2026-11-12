@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="AppTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
-        <item name="android:windowBackground">@color/m3_surface</item>
+    <!-- Light appearance; values-night/styles.xml swaps the parents for dark. -->
+    <style name="AppTheme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/bg_ambient</item>
         <item name="android:colorAccent">@color/m3_primary</item>
         <item name="android:colorControlActivated">@color/m3_primary</item>
         <item name="android:textColorHighlight">@color/m3_primary_container</item>
@@ -12,7 +13,7 @@
         <item name="android:windowAnimationStyle">@null</item>
     </style>
 
-    <style name="RenameDialogTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen">
+    <style name="RenameDialogTheme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar.Fullscreen">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowIsFloating">false</item>
         <item name="android:backgroundDimEnabled">false</item>
@@ -23,11 +24,10 @@
     <!-- Type scale: M3 Expressive "emphasized" weights on the TV's system sans -->
     <style name="Text" />
     <style name="Text.Display">
-        <item name="android:fontFamily">sans-serif</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textSize">40sp</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:textSize">44sp</item>
         <item name="android:textColor">@color/m3_on_surface</item>
-        <item name="android:letterSpacing">-0.01</item>
+        <item name="android:letterSpacing">-0.015</item>
     </style>
     <style name="Text.Headline">
         <item name="android:fontFamily">sans-serif-medium</item>

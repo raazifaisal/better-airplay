@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- tvOS 26 button: a translucent glass capsule at rest; on focus it lights up with a soft
+     top-to-bottom sheen (silver in dark mode, ink in light mode) and the text flips. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android" android:enterFadeDuration="150" android:exitFadeDuration="120">
     <item android:state_focused="true">
-        <shape><solid android:color="@color/m3_primary" /><corners android:radius="30dp" /></shape>
+        <shape>
+            <gradient android:angle="270" android:startColor="@color/focus_fill_top" android:endColor="@color/focus_fill" />
+            <corners android:radius="999dp" />
+        </shape>
     </item>
     <item>
-        <shape><solid android:color="@color/m3_surface_container_high" /><corners android:radius="16dp" /></shape>
+        <shape><solid android:color="@color/glass" /><corners android:radius="999dp" /></shape>
     </item>
 </selector>

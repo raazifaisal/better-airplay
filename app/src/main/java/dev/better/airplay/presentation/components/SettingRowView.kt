@@ -16,9 +16,10 @@ import dev.better.airplay.R
 import dev.better.airplay.presentation.core.RowModel
 
 /**
- * One row of a tvOS-style settings list, styled with Material 3 Expressive:
- * at rest it's flat text on the surface; on focus it lifts, fills with the primary colour and
- * morphs from a rounded rectangle to a full pill. ◀ ▶ adjust Choice/Toggle/Stepper rows in place.
+ * One row of a tvOS 26-style settings list. At rest it's a translucent glass capsule; on focus it
+ * lights up (soft silver with a top-to-bottom sheen in dark mode, ink in light mode), its content
+ * flips, and it lifts forward on a shadow with a slight scale. Colours come from the tokens.
+ * ◀ ▶ adjust Choice/Toggle/Stepper rows in place.
  */
 class SettingRowView(context: Context) : LinearLayout(context) {
 
@@ -40,20 +41,24 @@ class SettingRowView(context: Context) : LinearLayout(context) {
     private val chevron = ImageView(context)
     private val switch = SwitchIndicatorView(context)
 
-    private val bg = GradientDrawable()
+    private val bg = GradientDrawable().apply { orientation = GradientDrawable.Orientation.TOP_BOTTOM }
     private var focusFraction = 0f
     private var animator: ValueAnimator? = null
     private val argb = ArgbEvaluator()
 
-    private val cSurface = context.getColor(android.R.color.transparent)
+    private val cGlass = context.getColor(R.color.glass)
     private val cPrimary = context.getColor(R.color.m3_primary)
     private val cOnPrimary = context.getColor(R.color.m3_on_primary)
-    private val cError = context.getColor(R.color.m3_error)
-    private val cOnError = context.getColor(R.color.m3_on_error)
+    private val cDestructive = context.getColor(R.color.destructive)
+    private val cDestructiveOnFocus = context.getColor(R.color.destructive_on_focus)
     private val cOnSurface = context.getColor(R.color.m3_on_surface)
     private val cOnSurfaceVariant = context.getColor(R.color.m3_on_surface_variant)
     private val cOutline = context.getColor(R.color.m3_outline)
     private val cSurfaceHighest = context.getColor(R.color.m3_surface_container_highest)
+    private val cFocusFill = context.getColor(R.color.focus_fill)
+    private val cFocusFillTop = context.getColor(R.color.focus_fill_top)
+    private val cFocusOn = context.getColor(R.color.focus_on)
+    private val cFocusOnVariant = context.getColor(R.color.focus_on_variant)
 
     init {
         orientation = HORIZONTAL
@@ -171,7 +176,7 @@ class SettingRowView(context: Context) : LinearLayout(context) {
             addUpdateListener { applyFocusFraction(it.animatedValue as Float) }
             start()
         }
-        animate().translationZ(if (focused) 8 * d else 0f)
+        animate().translationZ(if (focused) 16 * d else 0f)
             .setDuration(if (focused) Motion.focusInMs() else Motion.focusOutMs()).start()
     }
 
@@ -180,25 +185,29 @@ class SettingRowView(context: Context) : LinearLayout(context) {
         focusFraction = f
         val c = f.coerceIn(0f, 1f)
         val destructive = (model as? RowModel.Action)?.destructive == true
-        val fill = if (destructive) cError else cPrimary
-        val onFill = if (destructive) cOnError else cOnPrimary
-        bg.setColor(argb.evaluate(c, cSurface, fill) as Int)
-        // Shape morph: 16dp rounded rect -> full pill.
-        bg.cornerRadius = (16 + (height / d / 2 - 16).coerceAtLeast(0f) * c) * d
-        val s = 1f + 0.03f * f
+        // tvOS focus: the glass cell lights up and its content flips. Destructive rows keep the
+        // same platter; only their text is red.
+        val fill = cFocusFill
+        val fillTop = cFocusFillTop
+        val onFill = if (destructive) cDestructiveOnFocus else cFocusOn
+        val onFillVariant = if (destructive) cDestructiveOnFocus else cFocusOnVariant
+        bg.colors = intArrayOf(argb.evaluate(c, cGlass, fillTop) as Int, argb.evaluate(c, cGlass, fill) as Int)
+        // tvOS 26 cells are capsules at rest and in focus; they brighten and lift, never change shape.
+        bg.cornerRadius = if (height > 0) height / 2f else 32 * d
+        val s = 1f + 0.05f * f
         scaleX = s; scaleY = s
-        val titleColor = argb.evaluate(c, if (destructive) cError else cOnSurface, onFill) as Int
-        val valueColor = argb.evaluate(c, cOnSurfaceVariant, onFill) as Int
+        val titleColor = argb.evaluate(c, if (destructive) cDestructive else cOnSurface, onFill) as Int
+        val valueColor = argb.evaluate(c, cOnSurfaceVariant, onFillVariant) as Int
         title.setTextColor(titleColor)
         value.setTextColor(valueColor)
         val tint = ColorStateList.valueOf(valueColor)
         prev.imageTintList = tint; next.imageTintList = tint; chevron.imageTintList = tint
         switch.colors = SwitchIndicatorView.Colors(
-            onTrack = argb.evaluate(c, cPrimary, cOnPrimary) as Int,
-            onThumb = argb.evaluate(c, cOnPrimary, cPrimary) as Int,
-            offTrack = argb.evaluate(c, cSurfaceHighest, cOnPrimary) as Int,
-            offThumb = argb.evaluate(c, cOutline, cPrimary) as Int,
-            offOutline = argb.evaluate(c, cOutline, cOnPrimary) as Int,
+            onTrack = argb.evaluate(c, cPrimary, cFocusOn) as Int,
+            onThumb = argb.evaluate(c, cOnPrimary, cFocusFill) as Int,
+            offTrack = argb.evaluate(c, cSurfaceHighest, cFocusFill) as Int,
+            offThumb = argb.evaluate(c, cOutline, cFocusOnVariant) as Int,
+            offOutline = argb.evaluate(c, cOutline, cFocusOnVariant) as Int,
         )
     }
 

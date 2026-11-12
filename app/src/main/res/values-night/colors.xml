@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dark appearance (system dark mode). Same token names as values/colors.xml (light).
+     True black (OLED) base with neutral, untinted greys, like tvOS dark. -->
+<resources>
+    <!-- Monochrome accent, like tvOS Settings: near-white on black, no brand blue. -->
+    <color name="m3_primary">#FFE5E5EA</color>
+    <color name="m3_on_primary">#FF000000</color>
+    <color name="m3_primary_container">#FF262626</color>
+    <color name="m3_on_primary_container">#FFF2F2F7</color>
+    <color name="m3_secondary_container">#FF262626</color>
+    <color name="m3_on_secondary_container">#FFF2F2F7</color>
+    <color name="m3_tertiary">#FFDDBCE0</color>
+    <color name="m3_error">#FFFFB4AB</color>
+    <color name="m3_on_error">#FF690005</color>
+
+    <color name="m3_surface">#FF000000</color>
+    <color name="m3_surface_container_low">#FF0C0C0C</color>
+    <color name="m3_surface_container">#FF141414</color>
+    <color name="m3_surface_container_high">#FF1F1F1F</color>
+    <color name="m3_surface_container_highest">#FF2A2A2A</color>
+    <color name="m3_on_surface">#FFE5E5EA</color>
+    <color name="m3_on_surface_variant">#FFA3A3A8</color>
+    <color name="m3_outline">#FF8C8C91</color>
+    <color name="m3_outline_variant">#FF3A3A3C</color>
+    <color name="m3_scrim">#F2000000</color>
+
+    <!-- tvOS focus: a focused item lights up to soft silver (never paper-white) with dark content.
+         focus_fill_top..focus_fill is a gentle top-to-bottom sheen. -->
+    <color name="focus_fill">#FFCFCFD4</color>
+    <color name="focus_fill_top">#FFEAEAED</color>
+    <color name="focus_on">#FF1C1C1E</color>
+    <color name="focus_on_variant">#FF55555B</color>
+    <!-- tvOS 26 rows/buttons at rest: a translucent grey glass capsule. -->
+    <color name="glass">#24FFFFFF</color>
+    <color name="glass_strong">#40FFFFFF</color>
+    <!-- Hero glyph: shown directly on the background, no tile. -->
+    <color name="hero_glyph">#FFD1D1D6</color>
+
+    <!-- Destructive rows (e.g. Reset): red text at rest and on the lit platter, like tvOS. -->
+    <color name="destructive">#FFFF6961</color>
+    <color name="destructive_on_focus">#FFD70015</color>
+
+    <!-- Status roles (always shown with text, never colour alone) -->
+    <color name="status_idle">#FF8C8C91</color>
+    <color name="status_busy">#FFF2C46D</color>
+    <color name="status_ready">#FF8BD99A</color>
+    <color name="status_active">#FFF2F2F7</color>
+    <color name="status_error">#FFFFB4AB</color>
+</resources>

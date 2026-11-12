@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Translucent "source" chip, like the tvOS "Today" pill: light fill over the ambient background. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#26FFFFFF" />
+    <corners android:radius="22dp" />
+</shape>

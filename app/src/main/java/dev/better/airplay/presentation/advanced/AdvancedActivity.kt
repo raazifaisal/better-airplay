@@ -21,7 +21,7 @@ class AdvancedActivity : ViewModelActivity<AdvancedUiState, AdvancedAction, Adva
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_split)
         screen = SplitScreen(this)
-        screen.artworkIcon.setImageResource(R.drawable.ic_tune)
+        screen.artworkIcon.setImageResource(R.drawable.ic_wrench)
         screen.title.setText(R.string.adv_title)
         screen.statusDot.visibility = View.GONE
         list = RowListBinder(screen.rows) { viewModel.onAction(AdvancedAction.Row(it)) }

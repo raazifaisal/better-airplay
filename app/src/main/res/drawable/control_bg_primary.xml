@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Primary transport (play/pause): same as control_bg but a slightly brighter glass at rest so it
+     reads as the main control. Focus is the silver sheen; no ring. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android" android:enterFadeDuration="120" android:exitFadeDuration="120">
+    <item android:state_focused="true">
+        <shape android:shape="oval">
+            <gradient android:angle="270" android:startColor="@color/np_focus_top" android:endColor="@color/np_focus" />
+        </shape>
+    </item>
+    <item><shape android:shape="oval"><solid android:color="@color/np_glass_strong" /></shape></item>
+</selector>
