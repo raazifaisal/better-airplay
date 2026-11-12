@@ -27,6 +27,7 @@ class SharedPrefsSettingsRepository(context: Context) : SettingsRepository {
             .putBoolean(K_MIRROR_AUDIO, settings.mirrorAudio)
             .putInt(K_AUDIO_DELAY, settings.audioDelayMs)
             .putBoolean(K_PASSTHROUGH, settings.surroundPassthrough)
+            .putBoolean(K_VIDEO_HANDOVER, settings.videoHandover)
             .putBoolean(K_HDR, settings.hdrPassthrough)
             .putString(K_FRM, settings.frameRateMatching.name)
             .putString(K_ACCESS, settings.access.name)
@@ -45,6 +46,7 @@ class SharedPrefsSettingsRepository(context: Context) : SettingsRepository {
         mirrorAudio = prefs.getBoolean(K_MIRROR_AUDIO, defaults.mirrorAudio),
         audioDelayMs = prefs.getInt(K_AUDIO_DELAY, defaults.audioDelayMs),
         surroundPassthrough = prefs.getBoolean(K_PASSTHROUGH, defaults.surroundPassthrough),
+        videoHandover = prefs.getBoolean(K_VIDEO_HANDOVER, defaults.videoHandover),
         hdrPassthrough = prefs.getBoolean(K_HDR, defaults.hdrPassthrough),
         frameRateMatching = prefs.enum(K_FRM, defaults.frameRateMatching),
         access = prefs.enum(K_ACCESS, defaults.access),
@@ -66,6 +68,7 @@ class SharedPrefsSettingsRepository(context: Context) : SettingsRepository {
         const val K_AUDIO_DELAY = "audio_delay_ms"
         const val K_PASSTHROUGH = "surround_passthrough"
         const val K_HDR = "hdr_passthrough"
+        const val K_VIDEO_HANDOVER = "video_handover"
         const val K_FRM = "frame_rate_matching"
         const val K_ACCESS = "access"
         const val K_STATS = "stats_overlay"

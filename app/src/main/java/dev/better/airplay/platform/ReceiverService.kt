@@ -34,7 +34,7 @@ class ReceiverService : Service() {
     override fun onCreate() {
         super.onCreate()
         startAsForeground(notification(getString(R.string.status_starting)))
-        container.engine.listener = container.trackSession
+        container.engine.listener = container.engineEvents
         statusSubscription = container.statusStore.observe(::onStatus)
         launcherSubscription = container.statusStore.observe(PlayerLauncher(this)::onStatus)
         policySubscription = container.statusStore.observe(container.sessionMediaPolicy::onStatus)

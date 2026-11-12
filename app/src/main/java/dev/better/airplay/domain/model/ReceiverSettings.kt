@@ -41,6 +41,8 @@ data class ReceiverSettings(
     val audioDelayMs: Int = 0,
     val surroundPassthrough: Boolean = true,
     // Video playback (handover)
+    /** Let apps like YouTube and Safari hand the video itself to the TV (the phone stays free). */
+    val videoHandover: Boolean = true,
     val hdrPassthrough: Boolean = true,
     val frameRateMatching: FrameRateMatching = FrameRateMatching.SEAMLESS_ONLY,
     // Access & diagnostics
@@ -49,7 +51,7 @@ data class ReceiverSettings(
 ) {
     /** The subset of settings baked into the running receiver; changing these needs a restart. */
     fun engineProjection() = listOf(customName, resolution, codec, refreshRate, frameRateCap,
-        overscanCompensation, audioDelayMs, access)
+        overscanCompensation, audioDelayMs, access, videoHandover)
 
     companion object {
         const val AUDIO_DELAY_MIN_MS = -500

@@ -9,7 +9,9 @@ import dev.better.airplay.domain.model.RemoteTarget
 import dev.better.airplay.domain.model.ReceiverConfig
 import dev.better.airplay.domain.model.ReceiverSettings
 import dev.better.airplay.domain.model.Sender
+import dev.better.airplay.domain.model.VideoError
 import dev.better.airplay.domain.model.VideoFormat
+import dev.better.airplay.domain.model.VideoPlaybackInfo
 
 /** Opaque handle to somewhere video can be drawn (the data layer wraps an Android Surface). */
 interface VideoSurface
@@ -24,6 +26,38 @@ interface ReceiverEngine {
     fun setVideoSurface(surface: VideoSurface?)
     fun setAudioMuted(muted: Boolean)
     fun setLowLatency(enabled: Boolean)
+    /**
+     * Latest state of the handover video player. The engine answers the phone's playback-info
+     * polls from this (it never calls back into the app to ask), so push it regularly.
+     */
+    fun updatePlaybackInfo(info: VideoPlaybackInfo)
+}
+
+/**
+ * Plays a handed-over video URL (HLS from the receiver's local server, or a direct http(s) URL).
+ * Commands may be called from any thread; the implementation moves them to its own thread.
+ */
+interface VideoPlayer {
+    interface Listener {
+        /** Regular progress (about twice a second while active), on the player's thread. */
+        fun onInfo(info: VideoPlaybackInfo)
+        fun onVideoSize(width: Int, height: Int)
+        fun onError(error: VideoError)
+    }
+
+    var listener: Listener?
+    /** Load [url] and start playing at [startSec]. Replaces whatever was playing. */
+    fun play(url: String, startSec: Double)
+    fun seek(positionSec: Double)
+    fun setPlaying(playing: Boolean)
+    /** Stop and unload; the player can [play] again afterwards. */
+    fun stop()
+    /** Where the picture is drawn; null detaches (audio keeps playing). */
+    fun setSurface(surface: VideoSurface?)
+    /** Current state snapshot. */
+    fun info(): VideoPlaybackInfo
+    /** Free all resources; the player can't be used afterwards. */
+    fun release()
 }
 
 sealed interface StartResult {
@@ -39,8 +73,14 @@ fun interface EngineListener {
 sealed interface EngineEvent {
     data class SenderConnecting(val sender: Sender) : EngineEvent
     data class MirroringStarted(val format: VideoFormat?) : EngineEvent
-    data object VideoPlaybackStarted : EngineEvent
-    data object VideoPlaybackStopped : EngineEvent
+    /** The phone handed a video to the TV (YouTube "play on TV", Safari's AirPlay button, ...). */
+    data class VideoHandoverStarted(val url: String, val startSec: Double) : EngineEvent
+    /** The phone's scrubber moved. */
+    data class VideoHandoverSeek(val positionSec: Double) : EngineEvent
+    /** Play (rate 1) / pause (rate 0) from the phone. */
+    data class VideoHandoverRate(val rate: Float) : EngineEvent
+    /** The phone stopped the video, or the receiver ended the handover. */
+    data object VideoHandoverStopped : EngineEvent
     data object AudioStreamStarted : EngineEvent
     /** The sender tore down the audio stream (iOS does this on pause); the connection stays open. */
     data class AudioStreamStopped(val nowMs: Long) : EngineEvent

@@ -59,9 +59,9 @@ class BuildReceiverConfig(
             refreshHz = refresh,
             maxFps = minOf(s.frameRateCap.fps, refresh),
             hevc = hevc,
-            // Off until the HLS player ships (Phase 6): advertising it makes YouTube hand video to a
-            // player we do not have yet. With it off, iOS falls back to Screen Mirroring for video.
-            videoHandover = false,
+            // Advertises AirPlay video + HLS so YouTube/Safari hand the video URL to the TV
+            // (the phone stays free). Off: iOS falls back to Screen Mirroring for video.
+            videoHandover = s.videoHandover,
             overscanned = s.overscanCompensation,
             audioDelayMicros = ((BASE_AUDIO_DELAY_MS + s.audioDelayMs).coerceAtLeast(0)) * 1000,
             requirePin = s.access == AccessMode.ONSCREEN_PIN,
@@ -146,7 +146,8 @@ class TrackSession(
             when (event) {
                 is EngineEvent.SenderConnecting -> snap.copy(status = ReceiverStatus.Connecting(event.sender))
                 is EngineEvent.MirroringStarted -> snap.copy(status = ReceiverStatus.Mirroring(st.currentSender, event.format), pin = null)
-                EngineEvent.VideoPlaybackStarted -> snap.copy(status = ReceiverStatus.PlayingVideo(st.currentSender), pin = null)
+                is EngineEvent.VideoHandoverStarted -> snap.copy(status = ReceiverStatus.PlayingVideo(st.currentSender), pin = null)
+                is EngineEvent.VideoHandoverSeek, is EngineEvent.VideoHandoverRate -> snap
                 EngineEvent.AudioStreamStarted -> when (st) {
                     is ReceiverStatus.Mirroring, is ReceiverStatus.PlayingVideo -> snap
                     is ReceiverStatus.PlayingAudio -> snap.copy(playing = true)   // resume after pause
@@ -173,7 +174,7 @@ class TrackSession(
                 is EngineEvent.AudioResumed ->
                     if (st is ReceiverStatus.PlayingAudio) snap.copy(playing = true, progress = snap.progress?.resumedAt(event.nowMs))
                     else snap
-                EngineEvent.VideoPlaybackStopped, EngineEvent.SessionEnded -> {
+                EngineEvent.VideoHandoverStopped, EngineEvent.SessionEnded -> {
                     trackKey = null
                     pendingArtwork = false
                     snap.copy(status = ReceiverStatus.Ready(port ?: lastPort), pin = null, playing = true, remote = null,
@@ -205,9 +206,12 @@ class SendRemoteCommand(
     }
 }
 
-/** Connects (or disconnects, with null) the screen the mirrored picture is drawn on. */
-class AttachVideoSurface(private val engine: ReceiverEngine) {
-    operator fun invoke(surface: dev.better.airplay.domain.port.VideoSurface?) = engine.setVideoSurface(surface)
+/**
+ * Connects (or disconnects, with null) the player screen's Surface. It goes to the mirroring
+ * decoder, or to the video player while a handed-over video plays ([VideoSurfaceRouter]).
+ */
+class AttachVideoSurface(private val router: VideoSurfaceRouter) {
+    operator fun invoke(surface: dev.better.airplay.domain.port.VideoSurface?) = router.attach(surface)
 }
 
 /**

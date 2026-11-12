@@ -6,6 +6,12 @@ import dev.better.airplay.data.device.AndroidDeviceInfo
 import dev.better.airplay.data.engine.AndroidVideoSurface
 import dev.better.airplay.domain.port.VideoSurface
 import dev.better.airplay.domain.usecase.AttachVideoSurface
+import dev.better.airplay.domain.usecase.EngineEventFanout
+import dev.better.airplay.domain.usecase.VideoHandoverSession
+import dev.better.airplay.domain.usecase.VideoSurfaceRouter
+import dev.better.airplay.domain.port.EngineListener
+import dev.better.airplay.domain.port.VideoPlayer
+import dev.better.airplay.data.video.MediaPlayerVideoPlayer
 import dev.better.airplay.domain.usecase.SessionMediaPolicy
 import dev.better.airplay.presentation.player.PlayerViewModel
 import dev.better.airplay.data.discovery.NsdServiceAdvertiser
@@ -63,7 +69,13 @@ class AppContainer(context: Context) {
     val trackSession by lazy { TrackSession(statusStore) }
     val renameReceiver by lazy { RenameReceiver(settingsRepository, deviceInfo, resolveReceiverName, controller) }
     val updateSettings by lazy { UpdateSettings(settingsRepository, controller) }
-    val attachVideoSurface by lazy { AttachVideoSurface(engine) }
+    /** One video player per process for AirPlay video handover (YouTube, Safari, ...). */
+    val videoPlayer: VideoPlayer by lazy { MediaPlayerVideoPlayer(app) }
+    val videoSurfaceRouter by lazy { VideoSurfaceRouter(engine, videoPlayer) }
+    val videoHandoverSession by lazy { VideoHandoverSession(engine, videoPlayer, videoSurfaceRouter, statusStore) }
+    /** The engine's single listener: session status first, then the video handover. */
+    val engineEvents: EngineListener by lazy { EngineEventFanout(listOf(trackSession, videoHandoverSession)) }
+    val attachVideoSurface by lazy { AttachVideoSurface(videoSurfaceRouter) }
     val remoteControl: dev.better.airplay.domain.port.RemoteControl by lazy { dev.better.airplay.data.remote.DacpRemoteControl(app) }
     val sendRemoteCommand by lazy { dev.better.airplay.domain.usecase.SendRemoteCommand(remoteControl, statusStore) }
     val sessionMediaPolicy by lazy { SessionMediaPolicy(engine, settingsRepository) }

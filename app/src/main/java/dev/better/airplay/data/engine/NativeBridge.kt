@@ -29,6 +29,8 @@ internal object NativeBridge {
         width: Int, height: Int, refreshRate: Int, maxFps: Int,
         h265: Boolean, hls: Boolean, overscanned: Boolean,
         audioDelayMicros: Int, pinMode: Int,
+        /** "en-IN:en": picks the audio track of handed-over HLS video. Must not be empty. */
+        languages: String,
     ): Int
 
     @JvmStatic external fun nativeStop()
@@ -36,6 +38,11 @@ internal object NativeBridge {
     @JvmStatic external fun nativeSetSurface(surface: Surface?)
     @JvmStatic external fun nativeSetAudioMuted(muted: Boolean)
     @JvmStatic external fun nativeSetLowLatency(enabled: Boolean)
+    /** Caches the handover player's state; UxPlay answers the phone's /playback-info from it. */
+    @JvmStatic external fun nativeUpdatePlaybackInfo(
+        durationSec: Double, positionSec: Double, rate: Float,
+        bufferEmpty: Boolean, bufferFull: Boolean, ended: Boolean, ready: Boolean,
+    )
 
     // ---- called from native ----
 
@@ -52,7 +59,11 @@ internal object NativeBridge {
 
     @JvmStatic
     fun onEvent(event: String, arg: String) {
-        if (event != "video_frames" && event != "audio_packets") Log.i(TAG, "event $event $arg")
+        if (event != "video_frames" && event != "audio_packets") {
+            // Handed-over URLs can carry signed tokens in the query string: don't log them.
+            val shown = if (event == "video_play") arg.substringBefore('?').replace('\n', ' ') else arg
+            Log.i(TAG, "event $event $shown")
+        }
         sink?.onEvent(event, arg)
     }
 

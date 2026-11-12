@@ -2,6 +2,7 @@ package dev.better.airplay.data.engine
 
 import dev.better.airplay.data.discovery.NsdServiceAdvertiser
 import dev.better.airplay.domain.model.ReceiverConfig
+import dev.better.airplay.domain.model.VideoPlaybackInfo
 import dev.better.airplay.domain.port.EngineListener
 import dev.better.airplay.domain.port.ReceiverEngine
 import dev.better.airplay.domain.port.StartResult
@@ -34,6 +35,7 @@ class UxPlayEngine(
             overscanned = config.overscanned,
             audioDelayMicros = config.audioDelayMicros,
             pinMode = if (config.requirePin) 1 else 0,
+            languages = HlsLanguages.system(),
         )
         return if (port > 0) StartResult.Started(port) else StartResult.Failed(port)
     }
@@ -52,6 +54,10 @@ class UxPlayEngine(
     override fun setAudioMuted(muted: Boolean) = NativeBridge.nativeSetAudioMuted(muted)
 
     override fun setLowLatency(enabled: Boolean) = NativeBridge.nativeSetLowLatency(enabled)
+
+    override fun updatePlaybackInfo(info: VideoPlaybackInfo) = NativeBridge.nativeUpdatePlaybackInfo(
+        info.durationSec, info.positionSec, info.rate, info.bufferEmpty, info.bufferFull, info.ended, info.ready,
+    )
 
     // ---- NativeBridge.Sink ----
 

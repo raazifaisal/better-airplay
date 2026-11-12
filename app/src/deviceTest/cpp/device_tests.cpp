@@ -19,6 +19,9 @@
 #include "ALACDecoder.h"
 #include "ALACEncoder.h"
 #include "media_pipeline.h"
+#include "playback_info_cache.h"
+#include <atomic>
+#include <thread>
 
 static int g_failures = 0, g_checks = 0;
 #define CHECK(cond) do { g_checks++; if (!(cond)) { g_failures++; printf("    FAIL %s:%d  %s\n", __FILE__, __LINE__, #cond); } } while (0)
@@ -336,6 +339,78 @@ static void audioOutputOpens() {
     }
 }
 
+// ---------------------------------------------------------------- video handover: /playback-info cache
+
+// Same field names as UxPlay's playback_info_t (raop.h); fillPlaybackInfo is a template over them.
+struct FakePlaybackInfo {
+    uint32_t stallcount = 99;
+    double duration = 99, position = 99, seek_start = 99, seek_duration = 99;
+    float rate = 99;
+    bool ready_to_play = true, playback_buffer_empty = true, playback_buffer_full = true, playback_likely_to_keep_up = true;
+    int num_loaded_time_ranges = 9, num_seekable_time_ranges = 9;
+    void *loadedTimeRanges = (void *) 1, *seekableTimeRanges = (void *) 1;
+};
+
+static void playbackInfoPlaying() {
+    PlaybackSample s;
+    s.duration = 600; s.position = 30; s.rate = 1; s.bufferEmpty = false; s.bufferFull = true; s.ready = true;
+    FakePlaybackInfo o;
+    fillPlaybackInfo(s, &o);
+    CHECK(o.duration == 600 && o.position == 30 && o.rate == 1.0f);
+    CHECK(o.seek_start == 0 && o.seek_duration == 600);
+    CHECK(o.ready_to_play && o.playback_likely_to_keep_up && o.playback_buffer_full && !o.playback_buffer_empty);
+    CHECK(o.stallcount == 0 && o.loadedTimeRanges == nullptr && o.num_seekable_time_ranges == 0);
+}
+
+static void playbackInfoEndedReleasesThePhone() {
+    // UxPlay treats duration == -1 as "video finished": it resets HLS and drops the connection.
+    PlaybackSample s;
+    s.duration = 600; s.position = 600; s.ended = true; s.ready = true;
+    FakePlaybackInfo o;
+    fillPlaybackInfo(s, &o);
+    CHECK(o.duration == -1.0 && o.position == -1.0 && o.rate == 0 && !o.ready_to_play);
+}
+
+static void playbackInfoNotReadyAndClamping() {
+    FakePlaybackInfo o;
+    fillPlaybackInfo(PlaybackSample{}, &o);   // nothing loaded yet: a valid, empty answer (not "finished")
+    CHECK(o.duration == 0 && o.position == 0 && o.rate == 0 && !o.ready_to_play && !o.playback_likely_to_keep_up);
+    PlaybackSample s;
+    s.duration = 100; s.position = 250; s.rate = 1; s.ready = true;
+    fillPlaybackInfo(s, &o);
+    CHECK(o.position == 100);                  // never past the end
+    s.position = -5; s.duration = -1;          // live/unknown duration, bogus position
+    fillPlaybackInfo(s, &o);
+    CHECK(o.position == 0 && o.duration == 0 && o.seek_duration == 0);
+}
+
+static void playbackInfoCacheIsConsistentAcrossThreads() {
+    // Writer publishes samples where position == duration / 2; readers must never see a torn mix.
+    PlaybackInfoCache cache;
+    std::atomic<bool> stop{false};
+    std::atomic<int> torn{0};
+    std::thread writer([&] {
+        for (int i = 1; i <= 200000; i++) {
+            PlaybackSample s;
+            s.duration = i * 2.0; s.position = i; s.ready = true; s.rate = 1;
+            cache.update(s);
+        }
+        stop = true;
+    });
+    std::vector<std::thread> readers;
+    for (int r = 0; r < 3; r++) readers.emplace_back([&] {
+        while (!stop) {
+            PlaybackSample s = cache.get();
+            if (s.ready && s.position * 2 != s.duration) torn++;
+        }
+    });
+    writer.join();
+    for (auto &t : readers) t.join();
+    CHECK(torn == 0);
+    cache.reset();
+    CHECK(!cache.get().ready && cache.get().position == 0);
+}
+
 int main(int argc, char **argv) {
     if (argc > 1) g_filter = argv[1];
     setvbuf(stdout, nullptr, _IONBF, 0);   // unbuffered: output survives a crash
@@ -349,6 +424,10 @@ int main(int argc, char **argv) {
     run("audio: frame validation (ALAC 0x20, AAC-ELD 0x8x)", aacEldValidation);
     run("video: GOP detection (H.264 / HEVC)", gopDetection);
     run("audio: AirPlay volume curve", volumeCurve);
+    run("handover: playback-info while playing", playbackInfoPlaying);
+    run("handover: ended video reports -1 (releases the phone)", playbackInfoEndedReleasesThePhone);
+    run("handover: not-ready answer and clamping", playbackInfoNotReadyAndClamping);
+    run("handover: playback-info cache is consistent across threads", playbackInfoCacheIsConsistentAcrossThreads);
     run("device: HEVC 4K, H.264, AAC-ELD, AAC-LC decoders configure", decodersAvailable);
     run("device: AAudio 44.1k stereo output opens", audioOutputOpens);
     printf("\n%d checks, %d failures\n", g_checks, g_failures);

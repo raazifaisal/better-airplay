@@ -23,8 +23,15 @@ internal object NativeEventParser {
         "video_size" -> Regex("(\\d+)x(\\d+)").find(arg)?.let {
             EngineEvent.VideoSizeChanged(it.groupValues[1].toInt(), it.groupValues[2].toInt())
         }
-        "video_play" -> EngineEvent.VideoPlaybackStarted
-        "video_stop" -> EngineEvent.VideoPlaybackStopped
+        "video_play" -> parseVideoPlay(arg)
+        "video_scrub" -> arg.trim().toDoubleOrNull()?.takeIf { !it.isNaN() }
+            ?.let { EngineEvent.VideoHandoverSeek(it.coerceAtLeast(0.0)) }
+        "video_rate" -> arg.trim().toFloatOrNull()?.takeIf { !it.isNaN() }?.let { EngineEvent.VideoHandoverRate(it) }
+        "video_stop" -> EngineEvent.VideoHandoverStopped
+        // playlistRemove (YouTube switching items / ads): UxPlay expects the player to pause.
+        "video_playlist_remove" -> EngineEvent.VideoHandoverRate(0f)
+        // reset_type_t 2 = HLS_SHUTDOWN (incl. end detected via playback-info), 3 = HLS_EOS.
+        "video_reset" -> if (arg.trim() == "2" || arg.trim() == "3") EngineEvent.VideoHandoverStopped else null
         "audio_format" -> if (arg.contains("screen=0")) EngineEvent.AudioStreamStarted else null
         "audio_codec" -> if (arg == "2") EngineEvent.AudioStreamStarted else null   // ALAC = music session
         "display_pin" -> EngineEvent.PinRequested(arg)
@@ -45,6 +52,15 @@ internal object NativeEventParser {
         "metadata" -> DmapParser.parse(data)?.let { EngineEvent.NowPlayingChanged(it) }
         "coverart" -> EngineEvent.ArtworkChanged(Artwork(data))
         else -> null
+    }
+
+    /** "<location>\n<start seconds>": the URL is everything before the last newline (it may contain spaces or '@'). */
+    private fun parseVideoPlay(arg: String): EngineEvent? {
+        val nl = arg.lastIndexOf('\n')
+        val url = (if (nl >= 0) arg.substring(0, nl) else arg).trim()
+        if (url.isEmpty()) return null
+        val start = if (nl >= 0) arg.substring(nl + 1).trim().toDoubleOrNull() else null
+        return EngineEvent.VideoHandoverStarted(url, start?.takeIf { it.isFinite() && it > 0 } ?: 0.0)
     }
 
     /** "codec=2 source=3840x2160 offset=0,0 size=3840x2160" */

@@ -78,8 +78,13 @@ class BuildReceiverConfigTest {
         assertTrue(build(ReceiverSettings(access = AccessMode.ONSCREEN_PIN)).requirePin)
     }
 
-    @Test fun `video handover stays off until the HLS player exists`() {
-        assertFalse(build(ReceiverSettings()).videoHandover)
+    @Test fun `video handover is on by default and follows the setting`() {
+        assertTrue(build(ReceiverSettings()).videoHandover)
+        assertFalse(build(ReceiverSettings(videoHandover = false)).videoHandover)
+    }
+
+    @Test fun `turning video handover on or off restarts the receiver (it changes what is advertised)`() {
+        assertTrue(ReceiverSettings().engineProjection() != ReceiverSettings(videoHandover = false).engineProjection())
     }
 }
 

@@ -10,6 +10,7 @@
 #include <android/log.h>
 #include <android/native_window_jni.h>
 #include "media_pipeline.h"
+#include "playback_info_cache.h"
 #include <atomic>
 #include <mutex>
 #include <string>
@@ -46,6 +47,11 @@ std::mutex g_lock;
 raop_t *g_raop = nullptr;
 dnssd_t *g_dnssd = nullptr;
 unsigned short g_port = 0;
+/* UxPlay keeps a pointer to this (raop_set_lang): it must outlive g_raop. */
+std::string g_lang_system;
+
+/* Handover video player state, pushed down from Kotlin; read when the phone polls /playback-info. */
+PlaybackInfoCache g_playback;
 
 std::atomic<uint64_t> g_video_frames{0};
 std::atomic<uint64_t> g_audio_packets{0};
@@ -124,6 +130,7 @@ void cb_log(void *, int level, const char *msg) {
 
 void cb_conn_init(void *) { emit_event("conn_init", ""); }
 void cb_conn_destroy(void *) {
+    g_playback.reset();
     if (g_video) g_video->reset();
     if (g_audio) g_audio->reset();
     g_video_frames = 0;
@@ -213,15 +220,34 @@ void cb_export_dacp(void *, const char *active_remote, const char *dacp_id) {
     emit_event("dacp", std::string(dacp_id ? dacp_id : "") + " " + (active_remote ? active_remote : ""));
 }
 
+/* Video handover. "video_play" carries "<location>\n<start seconds>": a newline can't appear in a URL,
+ * so URLs with spaces or '@' survive. The location is UxPlay's local HLS server
+ * (http://localhost:<port>/master.m3u8, YouTube via FCUP) or a direct http(s) URL (Safari). */
 void cb_on_video_play(void *, const char *location, const float start) {
-    emit_event("video_play", std::string(location ? location : "") + " @" + std::to_string(start));
+    g_playback.reset();   // never answer with the previous video's progress
+    emit_event("video_play", std::string(location ? location : "") + "\n" + std::to_string(start));
 }
 void cb_on_video_scrub(void *, const float pos) { emit_event("video_scrub", std::to_string(pos)); }
 void cb_on_video_rate(void *, const float rate) { emit_event("video_rate", std::to_string(rate)); }
 void cb_on_video_stop(void *) { emit_event("video_stop", ""); }
-void cb_on_video_acquire_playback_info(void *, playback_info_t *) {}
-float cb_on_video_playlist_remove(void *) { return 0.0f; }
-void cb_get_custom_profile(void *, const char **profile) { if (profile) *profile = nullptr; }
+void cb_on_video_acquire_playback_info(void *, playback_info_t *info) {
+    if (info) fillPlaybackInfo(g_playback.get(), info);
+}
+/* playlistRemove: the phone is switching items (next video, ads). UxPlay keeps the returned position
+ * to resume this item later; the app pauses its player. */
+float cb_on_video_playlist_remove(void *) {
+    PlaybackSample s = g_playback.get();
+    float position = s.ended ? 0.0f : (float) s.position;
+    emit_event("video_playlist_remove", std::to_string(position));
+    return position;
+}
+/* Filters the handed-over HLS master playlist (YouTube) before the player sees it. Format:
+ * "CODEC:maxHeight[,maxHeight60fps];..."; a codec that isn't listed is kept up to 2160p, so
+ * unwanted codecs are listed with height 0. Android's MediaPlayer HLS can't read YouTube's VP9
+ * (and AV1) variants: each attempt to switch onto one failed (-1007) and stuttered, and kept the
+ * stream stuck near 480p. Keep H.264 up to 1080p, which it plays smoothly at 60 fps. */
+const char *const kHlsProfile = "AVC:1080;HEVC:0;VP9:0;AV1:0";
+void cb_get_custom_profile(void *, const char **profile) { if (profile) *profile = kHlsProfile; }
 
 void stop_locked() {
     if (g_dnssd) {
@@ -289,16 +315,32 @@ Java_dev_better_airplay_data_engine_NativeBridge_nativeSetLowLatency(JNIEnv *, j
     if (g_video) g_video->setLowLatency(enabled);
 }
 
+extern "C" JNIEXPORT void JNICALL
+Java_dev_better_airplay_data_engine_NativeBridge_nativeUpdatePlaybackInfo(JNIEnv *, jclass, jdouble duration,
+                                                                          jdouble position, jfloat rate,
+                                                                          jboolean bufferEmpty, jboolean bufferFull,
+                                                                          jboolean ended, jboolean ready) {
+    PlaybackSample s;
+    s.duration = duration;
+    s.position = position;
+    s.rate = rate;
+    s.bufferEmpty = bufferEmpty;
+    s.bufferFull = bufferFull;
+    s.ended = ended;
+    s.ready = ready;
+    g_playback.update(s);
+}
+
 /*
  * start(name, hwAddr[6], keyFile, width, height, refreshRate, maxFps, h265, hls, overscanned,
- *       audioDelayMicros, pinMode) -> AirPlay TCP port, or negative error.
+ *       audioDelayMicros, pinMode, languages) -> AirPlay TCP port, or negative error.
  * pinMode: 0 = anyone may connect, 1 = on-screen PIN on first connection (remembered by the sender).
  */
 extern "C" JNIEXPORT jint JNICALL
 Java_dev_better_airplay_data_engine_NativeBridge_nativeStart(JNIEnv *env, jclass, jstring jname, jbyteArray jhw,
                                                  jstring jkeyfile, jint width, jint height, jint refreshRate,
                                                  jint maxFps, jboolean h265, jboolean hls, jboolean overscanned,
-                                                 jint audioDelayMicros, jint pinMode) {
+                                                 jint audioDelayMicros, jint pinMode, jstring jlanguages) {
     std::lock_guard<std::mutex> lock(g_lock);
     if (g_raop) return g_port;
     g_maxW = width;
@@ -373,6 +415,11 @@ Java_dev_better_airplay_data_engine_NativeBridge_nativeStart(JNIEnv *env, jclass
     raop_set_plist(g_raop, "overscanned", overscanned ? 1 : 0);
     raop_set_plist(g_raop, "audio_delay_micros", audioDelayMicros);
     if (hls) raop_set_plist(g_raop, "hls", 1);
+    /* System languages, used to pick the audio rendition of handed-over HLS (YouTube). UxPlay
+     * strlen()s this without a null check, so it must always be set (it crashed the app when unset). */
+    g_lang_system = jstr(env, jlanguages);
+    if (g_lang_system.empty()) g_lang_system = "en";
+    raop_set_lang(g_raop, nullptr, nullptr, g_lang_system.c_str());
     /* PIN pairing is enabled by the "pin" plist item (sets use_pin). Value 0 (< 10000) means a random
      * 4-digit PIN per pairing, reported through display_pin; senders remember the pairing afterwards. */
     if (pin_pw == 1) raop_set_plist(g_raop, "pin", 0);
